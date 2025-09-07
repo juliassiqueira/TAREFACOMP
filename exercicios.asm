@@ -59,16 +59,25 @@ RESULT16: DW 0
 OVER16: DB 0
 
 SOMA_16BITS:
-    LDA VAR16_1      ; parte baixa
+    LDA VAR16_1        ; parte baixa
     ADD VAR16_2
-    STA RESULT16
-    JNC CHECK_HIGH
+    STA RESULT16       ; salva parte baixa
+    JNC SEM_OVER16_LOW ; se não houve carry, vai para soma parte alta
     LDA #0FFh
-    STA OVER16
-CHECK_HIGH:
-    LDA VAR16_1+1    ; parte alta
+    STA OVER16         ; houve overflow na parte baixa
+    JMP SOMA16_HIGH
+SEM_OVER16_LOW:
+    LDA #0
+    STA OVER16         ; não houve overflow na parte baixa
+SOMA16_HIGH:
+    LDA VAR16_1+1      ; parte alta
     ADC VAR16_2+1
-    STA RESULT16+1
+    STA RESULT16+1     ; salva parte alta
+    ; Se deu carry aqui também, indica overflow de 16 bits
+    JNC FIM_SOMA16
+    LDA #0FFh
+    STA OVER16         ; houve overflow total
+FIM_SOMA16:
     RET
 
 ; =========================
@@ -100,22 +109,20 @@ MAIOR: DB 0
 COMPARA_3:
     LDA VAR_A     ; A = VAR_A
     CMP VAR_B
-    JC SEGUNDO    ; Se A < B, vai para SEGUNDO
-    ; A >= B
-    LDB VAR_A     ; B = A (até aqui, A é maior)
-    JMP TERCEIRO
+    JC B_MAIOR    ; Se VAR_A < VAR_B, B é maior até agora
+    LDB VAR_A     ; Senão, A é maior até agora
+    JMP COMP_C
 
-SEGUNDO:
-    LDB VAR_B     ; B = B (B é maior)
+B_MAIOR:
+    LDB VAR_B     ; B = maior até agora
 
-TERCEIRO:
+COMP_C:
     LDA VAR_C
     CMP B
-    JC FINAL      ; Se C < B, B é maior
-    ; C >= B
-    LDB VAR_C     ; B = C (C é maior)
+    JC FINAL      ; Se VAR_C < B, B é o maior
+    LDB VAR_C     ; Senão, C é maior
 FINAL:
-    STB MAIOR     ; Salva maior valor em MAIOR
+    STB MAIOR
     RET
 
 ; =========================
@@ -170,5 +177,3 @@ LOOP_MUL:
     JMP LOOP_MUL
 FIM_MUL:
     RET
-
-
