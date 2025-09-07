@@ -42,15 +42,14 @@ OVERFLOW: DB 0
 SOMA_8BITS:
     LDA VAR1
     ADD VAR2
+    STA RESULT         ; Salva resultado da soma antes de qualquer alteração
     JNC SEM_OVERFLOW
     LDA #0FFh
     STA OVERFLOW
-    JMP SALVAR
+    RET
 SEM_OVERFLOW:
     LDA #0
     STA OVERFLOW
-SALVAR:
-    STA RESULT
     RET
 
 ; --- 16 bits ---
@@ -75,17 +74,19 @@ CHECK_HIGH:
 ; =========================
 ; 3) Limpeza de área de memória (n posições)
 ; =========================
+; Limpeza de área de memória (n posições)
 START_ADDR: DW 2000h
 N: DB 10
 
 LIMPA_MEMORIA:
-    LDX START_ADDR
+    LDX START_ADDR   ; Endereço inicial
+    LDB N            ; Carrega N em B (contador)
     LDA #0
-LOOP:
-    STA (X)
-    INX
-    DEC N
-    JNZ LOOP
+LOOP_LIMPA:
+    STA (X)          ; Zera posição
+    INX              ; Avança endereço
+    DEC B            ; Decrementa contador
+    JNZ LOOP_LIMPA   ; Repete até B == 0
     RET
 
 ; =========================
@@ -94,34 +95,40 @@ LOOP:
 VAR_A: DB 10
 VAR_B: DB 20
 VAR_C: DB 15
+MAIOR: DB 0
 
 COMPARA_3:
-    LDA VAR_A
+    LDA VAR_A     ; A = VAR_A
     CMP VAR_B
-    JC A_MENOR_B
+    JC SEGUNDO    ; Se A < B, vai para SEGUNDO
     ; A >= B
-A_MENOR_B:
-    LDA VAR_A
-    CMP VAR_C
-    JC A_MENOR_C
-    ; resto do código
+    LDB VAR_A     ; B = A (até aqui, A é maior)
+    JMP TERCEIRO
+
+SEGUNDO:
+    LDB VAR_B     ; B = B (B é maior)
+
+TERCEIRO:
+    LDA VAR_C
+    CMP B
+    JC FINAL      ; Se C < B, B é maior
+    ; C >= B
+    LDB VAR_C     ; B = C (C é maior)
+FINAL:
+    STB MAIOR     ; Salva maior valor em MAIOR
     RET
 
 ; =========================
 ; 5) Transformação de números
 ; =========================
 NUM: DB 5
+COMP2: DB 0
 
-; Complemento de 2
 TO_COMPLEMENTO2:
-    NOT NUM
+    LDA NUM
+    NOT A
     ADD #1
-    RET
-
-; Sinal-Magnitude (ex: se negativo, MSB=1)
-TO_SINAL_MAG:
-    ; Para positivos nada muda
-    ; Para negativos: NUM = abs(NUM) | 80h
+    STA COMP2     ; Salva resultado em COMP2
     RET
 
 ; =========================
@@ -147,22 +154,21 @@ FIM:
 ; =========================
 ; 7) Multiplicação de dois números positivos
 ; =========================
-MUL_A: DB 5
-MUL_B: DB 3
-MUL_RESULT: DB 0
-
 MULTIPLICA:
     LDA #0
     STA MUL_RESULT
-    LDX MUL_B
+    LDA MUL_B
 LOOP_MUL:
     CMP #0
     BEQ FIM_MUL
     LDA MUL_RESULT
     ADD MUL_A
     STA MUL_RESULT
-    DEC MUL_B
+    LDA MUL_B
+    DEC A
+    STA MUL_B
     JMP LOOP_MUL
 FIM_MUL:
     RET
+
 
