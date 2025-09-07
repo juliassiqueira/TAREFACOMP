@@ -33,26 +33,6 @@ ZERA_TODOS:
 ; 2) Soma de duas variáveis com detecção de overflow
 ; =========================
 
-; --- 8 bits ---
-VAR1: DB 14h
-VAR2: DB 25h
-RESULT: DB 0
-OVERFLOW: DB 0
-
-SOMA_8BITS:
-    LDA VAR1
-    ADD VAR2
-    JNC SEM_OVERFLOW
-    LDA #0FFh
-    STA OVERFLOW
-    JMP SALVAR
-SEM_OVERFLOW:
-    LDA #0
-    STA OVERFLOW
-SALVAR:
-    STA RESULT
-    RET
-
 ; --- 16 bits ---
 VAR16_1: DW 1234h
 VAR16_2: DW 2345h
@@ -60,16 +40,25 @@ RESULT16: DW 0
 OVER16: DB 0
 
 SOMA_16BITS:
-    LDA VAR16_1      ; parte baixa
+    LDA VAR16_1        ; parte baixa
     ADD VAR16_2
-    STA RESULT16
-    JNC CHECK_HIGH
+    STA RESULT16       ; salva parte baixa
+    JNC SEM_OVER16_LOW ; se não houve carry, vai para soma parte alta
     LDA #0FFh
-    STA OVER16
-CHECK_HIGH:
-    LDA VAR16_1+1    ; parte alta
+    STA OVER16         ; houve overflow na parte baixa
+    JMP SOMA16_HIGH
+SEM_OVER16_LOW:
+    LDA #0
+    STA OVER16         ; não houve overflow na parte baixa
+SOMA16_HIGH:
+    LDA VAR16_1+1      ; parte alta
     ADC VAR16_2+1
-    STA RESULT16+1
+    STA RESULT16+1     ; salva parte alta
+    ; Se deu carry aqui também, indica overflow de 16 bits
+    JNC FIM_SOMA16
+    LDA #0FFh
+    STA OVER16         ; houve overflow total
+FIM_SOMA16:
     RET
 
 ; =========================
@@ -94,19 +83,26 @@ LOOP:
 VAR_A: DB 10
 VAR_B: DB 20
 VAR_C: DB 15
+MAIOR: DB 0
 
 COMPARA_3:
-    LDA VAR_A
+    LDA VAR_A     ; A = VAR_A
     CMP VAR_B
-    JC A_MENOR_B
-    ; A >= B
-A_MENOR_B:
-    LDA VAR_A
-    CMP VAR_C
-    JC A_MENOR_C
-    ; resto do código
-    RET
+    JC B_MAIOR    ; Se VAR_A < VAR_B, B é maior até agora
+    LDB VAR_A     ; Senão, A é maior até agora
+    JMP COMP_C
 
+B_MAIOR:
+    LDB VAR_B     ; B = maior até agora
+
+COMP_C:
+    LDA VAR_C
+    CMP B
+    JC FINAL      ; Se VAR_C < B, B é o maior
+    LDB VAR_C     ; Senão, C é maior
+FINAL:
+    STB MAIOR
+    RET
 ; =========================
 ; 5) Transformação de números
 ; =========================
@@ -165,4 +161,5 @@ LOOP_MUL:
     JMP LOOP_MUL
 FIM_MUL:
     RET
+
 
