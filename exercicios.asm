@@ -1,6 +1,11 @@
-1) Sub-rotinas para zerar registradores
+; =====================================================
+; EXERCÍCIOS DE ASSEMBLY
+; Júlia Siqueira
+; =====================================================
 
-Objetivo: Sub-rotinas para zerar A, B, X individualmente e uma função para zerar todos de uma vez.
+; =========================
+; 1) Sub-rotinas para zerar registradores
+; =========================
 
 ; Zera registrador A
 ZERA_A:
@@ -24,10 +29,11 @@ ZERA_TODOS:
     CALL ZERA_X
     RET
 
-2) Soma de duas variáveis com detecção de overflow
+; =========================
+; 2) Soma de duas variáveis com detecção de overflow
+; =========================
 
-8 bits (Ahmes/Ramses):
-
+; --- 8 bits ---
 VAR1: DB 14h
 VAR2: DB 25h
 RESULT: DB 0
@@ -36,7 +42,7 @@ OVERFLOW: DB 0
 SOMA_8BITS:
     LDA VAR1
     ADD VAR2
-    JNC SEM_OVERFLOW  ; Se não ocorreu carry, pula
+    JNC SEM_OVERFLOW
     LDA #0FFh
     STA OVERFLOW
     JMP SALVAR
@@ -47,28 +53,28 @@ SALVAR:
     STA RESULT
     RET
 
-
-16 bits (Ramses 16 bits):
-
+; --- 16 bits ---
 VAR16_1: DW 1234h
 VAR16_2: DW 2345h
 RESULT16: DW 0
 OVER16: DB 0
 
 SOMA_16BITS:
-    LDA VAR16_1      ; Carrega parte baixa
+    LDA VAR16_1      ; parte baixa
     ADD VAR16_2
     STA RESULT16
     JNC CHECK_HIGH
     LDA #0FFh
     STA OVER16
 CHECK_HIGH:
-    LDA VAR16_1+1    ; Parte alta
+    LDA VAR16_1+1    ; parte alta
     ADC VAR16_2+1
     STA RESULT16+1
     RET
 
-3) Limpeza de área de memória (n posições)
+; =========================
+; 3) Limpeza de área de memória (n posições)
+; =========================
 START_ADDR: DW 2000h
 N: DB 10
 
@@ -82,7 +88,9 @@ LOOP:
     JNZ LOOP
     RET
 
-4) Comparar três variáveis
+; =========================
+; 4) Comparar três variáveis
+; =========================
 VAR_A: DB 10
 VAR_B: DB 20
 VAR_C: DB 15
@@ -93,17 +101,15 @@ COMPARA_3:
     JC A_MENOR_B
     ; A >= B
 A_MENOR_B:
-    ; Comparar com C
     LDA VAR_A
     CMP VAR_C
     JC A_MENOR_C
-    ; resto...
+    ; resto do código
     RET
 
-
-(A lógica pode ser expandida para determinar maior, menor ou igual.)
-
-5) Transformação de números (Complemento de 2 e Sinal-Magnitude)
+; =========================
+; 5) Transformação de números
+; =========================
 NUM: DB 5
 
 ; Complemento de 2
@@ -112,17 +118,16 @@ TO_COMPLEMENTO2:
     ADD #1
     RET
 
-; Sinal-Magnitude (ex: se negativo, coloca MSB=1)
+; Sinal-Magnitude (ex: se negativo, MSB=1)
 TO_SINAL_MAG:
-    ; Supondo NUM é positivo/negativo na variável sinal
-    ; Para números positivos, nada muda
-    ; Para negativos, NUM = abs(NUM) | 80h
+    ; Para positivos nada muda
+    ; Para negativos: NUM = abs(NUM) | 80h
     RET
 
-6) Escrever nome em ASCII
+; =========================
+; 6) Escrever nome em ASCII
+; =========================
 NOME_POS: DW 3000h
-
-; Nome: JULIA SIQUEIRA
 NOME:
     DB "JULIA SIQUEIRA",0
 
@@ -139,10 +144,9 @@ LOOP_NOME:
 FIM:
     RET
 
-7) Multiplicação de dois números positivos
-
-Multiplicação por soma repetida:
-
+; =========================
+; 7) Multiplicação de dois números positivos
+; =========================
 MUL_A: DB 5
 MUL_B: DB 3
 MUL_RESULT: DB 0
@@ -161,6 +165,3 @@ LOOP_MUL:
     JMP LOOP_MUL
 FIM_MUL:
     RET
-
-
-(Se usar Ramses 16 bits, faça ADC para parte alta também.)
